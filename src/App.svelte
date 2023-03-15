@@ -25,7 +25,7 @@
     url += `?from=${encodeURIComponent(from)}`;
     url += `&until=${encodeURIComponent(until)}`;
     url += `&number=${parseInt(number)}`;
-    url += `&limit=10&recurse=false`;
+    url += `&limit=100&recurse=false`;
 
     const result = await fetch(url, {
       headers: { "X-Auth-Token": token },
