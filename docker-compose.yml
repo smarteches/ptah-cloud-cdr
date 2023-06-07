@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+
+  app:
+    build:
+      context: ./
+      dockerfile: docker/Dockerfile
+    env_file: .env
+    ports:
+      - ${APP_PORT}:80
+
+  dev:
+    build:
+      context: ./
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - ./app/src:/app/src:delegated
+    env_file: .env
+    ports:
+      - ${DEV_PORT}:80
