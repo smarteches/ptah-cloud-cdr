@@ -1,6 +1,16 @@
 <script>
     import { token } from '../stores/app';
 
+    let from;
+    let until;
+    let condo;
+    let date1;
+    let date2;
+    let total = 0;
+    let logs = [];
+    let number = '';
+    let loading = false;
+
     const expiration = 28800;
     const backend = 'wazo_user';
     const host = import.meta.env.VITE_API_URL;
@@ -9,8 +19,8 @@
     const calls = async (from = '', until = '', number = '') => {
         var url = `${host}/api/call-logd/1.0/cdr?limit=100&recurse=false`;
 
-        if (until && until != '') url += `&until=${encodeURIComponent(until)}`;
-        if (from && from != '') url += `&from=${encodeURIComponent(from)}`;
+        if (from && from != '') url += `&from=${from}`;
+        if (until && until != '') url += `&until=${until}`;
         if (number && number != '') url += `&number=${parseInt(number)}`;
 
         const headers = { 'X-Auth-Token': $token, 'Wazo-Tenant': tenant };
@@ -19,29 +29,28 @@
         return await result.json();
     };
 
-    let total = 0;
-    let logs = [];
-    let from = '';
-    let until = '';
-    let number = '';
-    let loading = false;
-
     const search = async () => {
-        if (!token) return alert('Erro de token');
+        from = date1.value;
+        until = date2.value;
 
-        if (from && from != '') {
-            if (!re.datetime.test(from)) return alert('Erro: Data inicial inválida (dd/mm/yyyy hh:mm)');
+        if (!$token) return alert('Erro de token');
 
-            var from = from.split(' ');
-            from = [from[0].split('/').reverse().join('-'), from[1]].join('T') + ':00Z';
-        }
+        if (!re.datetime.test(from)) return alert('Erro: Data inicial inválida (dd/mm/yyyy hh:mm)');
+        if (!re.datetime.test(until)) return alert('Erro: Data de término inválida (dd/mm/yyyy hh:mm)');
 
-        if (until && until != '') {
-            if (!re.datetime.test(until)) return alert('Erro: Data final inválida (dd/mm/yyyy hh:mm)');
+        var from = from.split(' ');
+        var until = until.split(' ');
 
-            var until = until.split(' ');
-            until = [until[0].split('/').reverse().join('-'), until[1]].join('T') + ':00Z';
-        }
+        from = [from[0].split('/').reverse().join('-'), from[1]].join('T') + ':00Z';
+        until = [until[0].split('/').reverse().join('-'), until[1]].join('T') + ':00Z';
+
+        const _from = new Date(from);
+        _from.setHours(_from.getHours() + 3);
+        from = _from.toISOString();
+
+        const _until = new Date(until);
+        _until.setHours(_until.getHours() + 3);
+        until = _until.toISOString();
 
         try {
             loading = true;
@@ -60,9 +69,7 @@
         loading = false;
     };
 
-    const download = (cdr_id, rec_id) => {
-        open(`${host}/api/call-logd/1.0/cdr/${cdr_id}/recordings/${rec_id}/media?token=${token}`);
-    };
+    const download = (cdr_id, rec_id) => open(`${host}/api/call-logd/1.0/cdr/${cdr_id}/recordings/${rec_id}/media?token=${$token}`);
 
     const fillUntil = () => {
         if (from && !until) {
@@ -77,8 +84,7 @@
             const a = await login(username, password);
 
             if ('data' in a) {
-                token = a.data.token;
-
+                token.set(a.data.token);
                 date1.focus();
             } else {
                 alert(a.reason);
@@ -132,10 +138,6 @@
             e.target.value = val;
         },
     };
-
-    let condo;
-    let date1;
-    let date2;
 </script>
 
 <main class="card">
