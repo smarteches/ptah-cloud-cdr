@@ -1,39 +1,55 @@
 <script>
+    import { onMount } from 'svelte';
     import { token } from '../stores/app';
 
     let error = null;
     let username = '';
     let password = '';
     let loading = false;
+    let accepted = true;
 
-    const expiration = 28800;
-    const backend = 'wazo_user';
-    const host = import.meta.env.VITE_API_URL;
     const tenant = import.meta.env.VITE_TENANT_ID;
+    const host = import.meta.env.VITE_API_URL;
+    const url = `${host}/api/auth/0.1/token`;
+    const backend = 'wazo_user';
+    const expiration = 28800;
 
     const login = async () => {
         loading = true;
 
-        const auth = { expiration, backend };
-        const url = `${host}/api/auth/0.1/token`;
-        const basic = btoa(`${username}:${password}`);
+        try {
+            const auth = { expiration, backend };
+            const basic = btoa(`${username}:${password}`);
 
-        const result = await fetch(url, {
-            headers: { Authorization: `Basic ${basic}` },
-            body: JSON.stringify(auth),
-            method: 'POST',
-        });
+            const result = await fetch(url, {
+                headers: { Authorization: `Basic ${basic}` },
+                body: JSON.stringify(auth),
+                method: 'POST',
+            });
 
-        const data = await result.json();
+            const data = await result.json();
 
-        if ('data' in data) {
-            token.set(data.data.token);
-        } else {
-            error = data.reason;
+            if ('data' in data) {
+                token.set(data.data.token);
+            } else {
+                error = data.reason;
+            }
+        } catch (e) {
+            alert(`Você aceitou o certificado?\nErro: ${e.message}`);
         }
 
         loading = false;
     };
+
+    const cert = () => window.open(url);
+
+    onMount(async () => {
+        try {
+            await fetch(url);
+        } catch (e) {
+            accepted = false;
+        }
+    });
 </script>
 
 {#if error}
@@ -41,11 +57,20 @@
 {/if}
 
 <main class="card">
-    <div class="card-header d-flex justify-content-between">
+    <div class="card-header d-flex items-center justify-content-between">
         <div>
             <i class="fa fa-lock" />
             <strong>Login</strong>
         </div>
+        {#if accepted}
+            <button class="btn btn-sm btn-success" on:click={cert}>
+                <i class="fa fa-check" />
+            </button>
+        {:else}
+            <button class="btn btn-sm btn-danger" on:click={cert}>
+                <i class="fa fa-warning" />
+            </button>
+        {/if}
     </div>
 
     <div class="card-body">
