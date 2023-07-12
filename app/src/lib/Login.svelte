@@ -6,7 +6,7 @@
     let username = '';
     let password = '';
     let loading = false;
-    let accepted = true;
+    let certificate = false;
 
     const tenant = import.meta.env.VITE_TENANT_ID;
     const host = import.meta.env.VITE_API_URL;
@@ -43,17 +43,28 @@
 
     const cert = () => window.open(url);
 
-    onMount(async () => {
+    const check = async () => {
         try {
             await fetch(url);
+            certificate = true;
         } catch (e) {
-            accepted = false;
+            certificate = false;
+            window.addEventListener('focus', check);
         }
-    });
+    };
+
+    onMount(check);
 </script>
 
 {#if error}
     <div class="alert alert-danger">{error}</div>
+{/if}
+
+{#if !certificate}
+    <div class="alert alert-danger">
+        <i class="fa fa-warning" />
+        <span>Você precisa aceitar o certificado, clicando no ícone vermelho.</span>
+    </div>
 {/if}
 
 <main class="card">
@@ -62,8 +73,8 @@
             <i class="fa fa-lock" />
             <strong>Login</strong>
         </div>
-        {#if accepted}
-            <button class="btn btn-sm btn-success" on:click={cert}>
+        {#if certificate}
+            <button class="btn btn-sm btn-success" on:click={() => {}}>
                 <i class="fa fa-check" />
             </button>
         {:else}
