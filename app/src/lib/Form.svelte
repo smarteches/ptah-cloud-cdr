@@ -11,10 +11,14 @@
     let number = '';
     let loading = false;
 
-    const expiration = 28800;
-    const backend = 'wazo_user';
-    const host = import.meta.env.VITE_API_URL;
-    const tenant = import.meta.env.VITE_TENANT_ID;
+    let tenant = import.meta.env.VITE_TENANT_ID;
+    let host = import.meta.env.VITE_API_URL;
+    $: url = `${host}/api/auth/0.1/token`;
+    let config = false;
+
+    const configure = () => {
+        config = !config;
+    };
 
     const calls = async (from = '', until = '', number = '') => {
         var url = `${host}/api/call-logd/1.0/cdr?limit=100&recurse=false`;
@@ -146,9 +150,31 @@
             <i class="fa fa-search" />
             <strong>Busca de Gravações</strong>
         </div>
+        <div>
+            <button class="btn btn-sm btn-warning" on:click={configure}>
+                <i class="fa fa-cog" />
+            </button>
+        </div>
     </div>
 
     <div class="card-body">
+        {#if config}
+            <div class="row">
+                <div class="col">
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="host" bind:value={host} />
+                        <label for="host">Server</label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="tenant" bind:value={tenant} />
+                        <label for="tenant">Tenant</label>
+                    </div>
+                </div>
+            </div>
+        {/if}
+
         <div class="row">
             <div class="col">
                 <div class="form-floating mb-3">

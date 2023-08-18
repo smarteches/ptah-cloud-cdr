@@ -8,17 +8,20 @@
     let loading = false;
     let certificate = false;
 
-    const tenant = import.meta.env.VITE_TENANT_ID;
-    const host = import.meta.env.VITE_API_URL;
-    const url = `${host}/api/auth/0.1/token`;
-    const backend = 'wazo_user';
-    const expiration = 28800;
+    let tenant = import.meta.env.VITE_TENANT_ID;
+    let host = import.meta.env.VITE_API_URL;
+    $: url = `${host}/api/auth/0.1/token`;
+    let config = false;
+
+    const configure = () => {
+        config = !config;
+    };
 
     const login = async () => {
         loading = true;
 
         try {
-            const auth = { expiration, backend };
+            const auth = { expiration: 28800, backend: 'wazo_user' };
             const basic = btoa(`${username}:${password}`);
 
             const result = await fetch(url, {
@@ -73,18 +76,40 @@
             <i class="fa fa-lock" />
             <strong>Login</strong>
         </div>
-        {#if certificate}
-            <button class="btn btn-sm btn-success" on:click={() => {}}>
-                <i class="fa fa-check" />
+        <div>
+            <button class="btn btn-sm btn-warning" on:click={configure}>
+                <i class="fa fa-cog" />
             </button>
-        {:else}
-            <button class="btn btn-sm btn-danger" on:click={cert}>
-                <i class="fa fa-warning" />
-            </button>
-        {/if}
+            {#if certificate}
+                <button class="btn btn-sm btn-success" on:click={() => {}}>
+                    <i class="fa fa-check" />
+                </button>
+            {:else}
+                <button class="btn btn-sm btn-danger" on:click={cert}>
+                    <i class="fa fa-warning" />
+                </button>
+            {/if}
+        </div>
     </div>
 
     <div class="card-body">
+        {#if config}
+            <div class="row">
+                <div class="col">
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="host" bind:value={host} />
+                        <label for="host">Server</label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="tenant" bind:value={tenant} />
+                        <label for="tenant">Tenant</label>
+                    </div>
+                </div>
+            </div>
+        {/if}
+
         <div class="row">
             <div class="col">
                 <div class="form-floating mb-3">
