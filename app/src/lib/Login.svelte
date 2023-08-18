@@ -7,6 +7,7 @@
     let password = '';
     let loading = false;
     let certificate = false;
+    $: disabled = username == '' || password == '';
 
     let tenant = import.meta.env.VITE_TENANT_ID;
     let host = import.meta.env.VITE_API_URL;
@@ -18,6 +19,7 @@
     };
 
     const login = async () => {
+        if (disabled) return;
         loading = true;
 
         try {
@@ -127,11 +129,7 @@
 
         <div class="row">
             <div class="col">
-                {#if loading}
-                    <button class="btn btn-primary" disabled>Aguarde...</button>
-                {:else}
-                    <button class="btn btn-primary" on:click={login}>Entrar</button>
-                {/if}
+                <button class="btn btn-primary" on:click={loading || disabled ? () => {} : login} disabled={loading || disabled}>{loading ? 'Entrando...' : 'Entrar'}</button>
             </div>
         </div>
     </div>
