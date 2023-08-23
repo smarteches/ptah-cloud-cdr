@@ -1,5 +1,5 @@
 <script>
-    import { token } from '../stores/app';
+    import { token, server, tenant } from '../stores/app';
 
     let from;
     let until;
@@ -11,23 +11,19 @@
     let number = '';
     let loading = false;
 
-    let tenant = import.meta.env.VITE_TENANT_ID;
-    let host = import.meta.env.VITE_API_URL;
-    $: url = `${host}/api/auth/0.1/token`;
-    let config = false;
+    $: url = `${$server}/api/call-logd/1.0/cdr?limit=100&recurse=false`;
 
+    let config = false;
     const configure = () => {
         config = !config;
     };
 
     const calls = async (from = '', until = '', number = '') => {
-        var url = `${host}/api/call-logd/1.0/cdr?limit=100&recurse=false`;
-
         if (from && from != '') url += `&from=${from}`;
         if (until && until != '') url += `&until=${until}`;
         if (number && number != '') url += `&number=${parseInt(number)}`;
 
-        const headers = { 'X-Auth-Token': $token, 'Wazo-Tenant': tenant };
+        const headers = { 'X-Auth-Token': $token, 'Wazo-Tenant': $tenant };
         const result = await fetch(url, { method: 'GET', headers });
 
         return await result.json();
@@ -73,7 +69,7 @@
         loading = false;
     };
 
-    const download = (cdr_id, rec_id) => open(`${host}/api/call-logd/1.0/cdr/${cdr_id}/recordings/${rec_id}/media?token=${$token}`);
+    const download = (cdr_id, rec_id) => open(`${$server}/api/call-logd/1.0/cdr/${cdr_id}/recordings/${rec_id}/media?token=${$token}`);
 
     const fillUntil = () => {
         if (from && !until) {
@@ -162,13 +158,13 @@
             <div class="row">
                 <div class="col">
                     <div class="form-floating mb-3">
-                        <input class="form-control" id="host" bind:value={host} />
-                        <label for="host">Server</label>
+                        <input class="form-control" id="server" bind:value={$server} />
+                        <label for="server">Server</label>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-floating mb-3">
-                        <input class="form-control" id="tenant" bind:value={tenant} />
+                        <input class="form-control" id="tenant" bind:value={$tenant} />
                         <label for="tenant">Tenant</label>
                     </div>
                 </div>

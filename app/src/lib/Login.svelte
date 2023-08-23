@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
-    import { token } from '../stores/app';
+
+    import { token, server, tenant } from '../stores/app';
 
     let error = null;
     let username = '';
@@ -9,9 +10,8 @@
     let certificate = false;
     $: disabled = username == '' || password == '';
 
-    let tenant = import.meta.env.VITE_TENANT_ID;
-    let host = import.meta.env.VITE_API_URL;
-    $: url = `${host}/api/auth/0.1/token`;
+    server.set(import.meta.env.VITE_API_URL);
+    $: url = `${$server}/api/auth/0.1/token`;
     let config = false;
 
     const configure = () => {
@@ -36,6 +36,7 @@
 
             if ('data' in data) {
                 token.set(data.data.token);
+                tenant.set(data.data.metadata.tenant_uuid);
             } else {
                 error = data.reason;
             }
@@ -50,6 +51,7 @@
 
     const check = async () => {
         try {
+            // error, ok
             await fetch(url);
             certificate = true;
         } catch (e) {
@@ -99,13 +101,13 @@
             <div class="row">
                 <div class="col">
                     <div class="form-floating mb-3">
-                        <input class="form-control" id="host" bind:value={host} />
-                        <label for="host">Server</label>
+                        <input class="form-control" id="server" bind:value={$server} />
+                        <label for="server">Server</label>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-floating mb-3">
-                        <input class="form-control" id="tenant" bind:value={tenant} />
+                        <input class="form-control" id="tenant" bind:value={$tenant} />
                         <label for="tenant">Tenant</label>
                     </div>
                 </div>
